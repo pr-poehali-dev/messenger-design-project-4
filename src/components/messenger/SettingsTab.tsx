@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import Avatar from './Avatar';
 
@@ -44,24 +44,103 @@ const settingsSections: { title?: string; items: SettingItem[] }[] = [
 
 const SettingsTab: React.FC = () => {
   const [darkMode, setDarkMode] = useState(true);
+  const [avatarSrc, setAvatarSrc] = useState(ANNA_AVATAR);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [name, setName] = useState('Алексей И.');
+  const [nameInput, setNameInput] = useState(name);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setAvatarSrc(url);
+  };
 
   return (
     <div className="flex-1 overflow-y-auto">
+      {/* Logout confirm dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="rounded-2xl p-6 max-w-xs w-full animate-scale-in" style={{ background: 'hsl(var(--msg-surface-2))' }}>
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'hsl(0 84% 60% / 0.15)' }}>
+                <Icon name="LogOut" size={22} style={{ color: 'hsl(var(--msg-unread))' }} />
+              </div>
+              <div className="font-semibold text-[hsl(var(--msg-text))] mb-1">Выйти из аккаунта?</div>
+              <div className="text-sm text-[hsl(var(--msg-text-muted))]">Все локальные данные будут удалены</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[hsl(var(--msg-text))] transition-colors"
+                style={{ background: 'hsl(var(--msg-surface-3))' }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors"
+                style={{ background: 'hsl(var(--msg-unread))' }}
+              >
+                Выйти
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit name modal */}
+      {editingName && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="rounded-2xl p-6 max-w-xs w-full animate-scale-in" style={{ background: 'hsl(var(--msg-surface-2))' }}>
+            <div className="font-semibold text-[hsl(var(--msg-text))] mb-4">Редактировать профиль</div>
+            <input
+              autoFocus
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              className="w-full rounded-xl px-3 py-2.5 text-sm outline-none mb-4 text-[hsl(var(--msg-text))]"
+              style={{ background: 'hsl(var(--msg-surface-3))', border: '1px solid hsl(var(--msg-accent) / 0.4)' }}
+              placeholder="Имя"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditingName(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[hsl(var(--msg-text))]"
+                style={{ background: 'hsl(var(--msg-surface-3))' }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={() => { setName(nameInput); setEditingName(false); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
+                style={{ background: 'hsl(var(--msg-accent))' }}
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Profile hero */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
       <div
         className="flex flex-col items-center py-6 px-4"
         style={{ background: 'hsl(var(--msg-surface))' }}
       >
         <div className="relative mb-3">
-          <Avatar src={ANNA_AVATAR} name="Вы" size="xl" showStatus={false} />
+          <Avatar src={avatarSrc} name="Вы" size="xl" showStatus={false} />
           <button
-            className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute bottom-0 right-0 w-7 h-7 rounded-full flex items-center justify-center transition-transform hover:scale-110"
             style={{ background: 'hsl(var(--msg-accent))', border: '2px solid hsl(var(--msg-bg))' }}
           >
             <Icon name="Camera" size={13} className="text-white" />
           </button>
         </div>
-        <div className="font-bold text-lg text-[hsl(var(--msg-text))]">Алексей И.</div>
+        <div className="font-bold text-lg text-[hsl(var(--msg-text))]">{name}</div>
         <div className="text-sm text-[hsl(var(--msg-text-muted))]">@alexey · В сети</div>
       </div>
 
@@ -73,6 +152,10 @@ const SettingsTab: React.FC = () => {
             {section.items.map((item, ii) => (
               <div
                 key={ii}
+                onClick={() => {
+                  if (item.label === 'Редактировать профиль') setEditingName(true);
+                  if (item.label === 'Выйти из аккаунта') setShowLogoutConfirm(true);
+                }}
                 className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer hover:bg-[hsl(var(--msg-surface-2))] transition-colors"
                 style={{ borderBottom: ii < section.items.length - 1 ? '1px solid hsl(var(--msg-surface-2))' : 'none' }}
               >

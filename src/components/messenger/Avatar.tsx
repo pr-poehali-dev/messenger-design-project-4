@@ -13,10 +13,10 @@ interface AvatarProps {
 }
 
 const sizeMap = {
-  sm: { outer: 'w-8 h-8', text: 'text-xs', badge: 'w-2.5 h-2.5', badgePos: '-bottom-0 -right-0', verifySize: 14 },
-  md: { outer: 'w-12 h-12', text: 'text-sm', badge: 'w-3 h-3', badgePos: 'bottom-0 right-0', verifySize: 16 },
-  lg: { outer: 'w-16 h-16', text: 'text-base', badge: 'w-3.5 h-3.5', badgePos: 'bottom-0.5 right-0.5', verifySize: 18 },
-  xl: { outer: 'w-20 h-20', text: 'text-xl', badge: 'w-4 h-4', badgePos: 'bottom-1 right-1', verifySize: 22 },
+  sm: { outer: 'w-8 h-8', text: 'text-xs', badgePx: 10, badgePos: '-bottom-0 -right-0', verifySize: 14 },
+  md: { outer: 'w-12 h-12', text: 'text-sm', badgePx: 12, badgePos: 'bottom-0 right-0', verifySize: 16 },
+  lg: { outer: 'w-16 h-16', text: 'text-base', badgePx: 14, badgePos: 'bottom-0.5 right-0.5', verifySize: 18 },
+  xl: { outer: 'w-20 h-20', text: 'text-xl', badgePx: 16, badgePos: 'bottom-1 right-1', verifySize: 22 },
 };
 
 const statusColors: Record<ChatStatus, string> = {
@@ -26,10 +26,10 @@ const statusColors: Record<ChatStatus, string> = {
   voice: '#3b82f6',
 };
 
-const StatusIcon = ({ status, size }: { status: ChatStatus; size: number }) => {
+const StatusIcon = ({ status, sizePx }: { status: ChatStatus; sizePx: number }) => {
   if (status === 'online') return null;
-  if (status === 'dnd') return <span style={{ fontSize: size * 0.6 }}>🌙</span>;
-  if (status === 'voice') return <span style={{ fontSize: size * 0.6 }}>🎙</span>;
+  if (status === 'dnd') return <span style={{ fontSize: Math.round(sizePx * 0.6) }}>🌙</span>;
+  if (status === 'voice') return <span style={{ fontSize: Math.round(sizePx * 0.6) }}>🎙</span>;
   return null;
 };
 
@@ -54,14 +54,16 @@ const Avatar: React.FC<AvatarProps> = ({
 
       {showStatus && status && status !== 'offline' && (
         <div
-          className={`absolute ${s.badgePos} ${s.badge} rounded-full border-2 flex items-center justify-center`}
+          className={`absolute ${s.badgePos} rounded-full border-2 flex items-center justify-center`}
           style={{
+            width: s.badgePx,
+            height: s.badgePx,
             background: statusColors[status],
             borderColor: 'hsl(220 16% 8%)',
           }}
         >
           {status !== 'online' && (
-            <StatusIcon status={status} size={parseInt(s.badge)} />
+            <StatusIcon status={status} sizePx={s.badgePx} />
           )}
         </div>
       )}
